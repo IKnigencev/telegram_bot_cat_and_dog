@@ -55,7 +55,7 @@ def get_compliment():
         response = requests.get(URL_COMPLIMENT).json()
         rendom_compliment = response.get('compliment')
         result = translator.translate(rendom_compliment, src='en', dest='ru')
-        return str(result)
+        return str(result.text)
     except Exception as error:
         logging.error(f'Ошибка при запросе к API комплиментов: {error}')
         response = requests.get(URL_CATS).json()
