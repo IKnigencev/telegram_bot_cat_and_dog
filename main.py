@@ -16,6 +16,7 @@ logging.basicConfig(
 TELEGRAM_TOKEN = os.getenv('TELEGRAM_TOKEN')
 URL_CATS = 'https://api.thecatapi.com/v1/images/search'
 URL_DOGS = 'https://api.thedogapi.com/v1/images/search'
+URL_COMPLIMENT = 'https://complimentr.com/api'
 
 
 def get_cats_image():
@@ -43,6 +44,19 @@ def get_dogs_image():
     return random_dog
 
 
+def get_compliment():
+    '''Обращение к API для получения фото собачки.'''
+    try:
+        response = requests.get(URL_COMPLIMENT).json()
+        rendom_compliment = response.get('compliment')
+        return rendom_compliment
+    except Exception as error:
+        logging.error(f'Ошибка при запросе к API комплиментов: {error}')
+        response = requests.get(URL_CATS).json()
+        random_compliment = response[0].get('url')
+        return random_compliment
+
+
 def new_dog(update, context):
     '''Функция получения новой фотографии собаки.'''
     chat = update.effective_chat
@@ -50,9 +64,15 @@ def new_dog(update, context):
 
 
 def new_cat(update, context):
-    '''Функиция получения новой фотографии кота.'''
+    '''Функция получения новой фотографии кота.'''
     chat = update.effective_chat
     context.bot.send_photo(chat.id, get_cats_image())
+
+
+def new_compliment(update, context):
+    '''Функция получения нового комплимента.'''
+    chat = update.effective_chat
+    context.bot.send_message(chat.id, get_compliment())
 
 
 def wake_up(update, context):
@@ -60,7 +80,7 @@ def wake_up(update, context):
     chat = update.effective_chat
     name = update.message.chat.first_name
     button = ReplyKeyboardMarkup(
-        [['/newcat', '/newdog']],
+        [['/newcat', '/newdog'], ['/newcompliment']],
         resize_keyboard=True
     )
 
@@ -79,6 +99,9 @@ def main():
     updater.dispatcher.add_handler(CommandHandler('start', wake_up))
     updater.dispatcher.add_handler(CommandHandler('newcat', new_cat))
     updater.dispatcher.add_handler(CommandHandler('newdog', new_dog))
+    updater.dispatcher.add_handler(
+        CommandHandler('newcompliment', new_compliment)
+    )
 
     updater.start_polling()
     updater.idle()
